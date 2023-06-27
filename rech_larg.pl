@@ -1,10 +1,6 @@
 /* Ce fichier est encodé en UTF-8 et suit la syntaxe du langage Prolog      */
 /* Merci de NE PAS MODIFIER LE SYSTEME D'ENCODAGE     */
 
-/* Ce fichier est encodé en UTF-8 et suit la syntaxe du langage Prolog      */
-/* Merci de NE PAS MODIFIER LE SYSTEME D'ENCODAGE     */
-
-
 /* Nom du binome :    Nicolas LEGRAND - Hazael SOLEDADE DE ARAUJO JUMONJI   */
 /*           (TODO : remplacez Nom1 et Nom2 par vos noms dans l'ordre alphabétique) */
 
@@ -29,13 +25,10 @@
      et testez le sur des exemples simples pour bien comprendre comment
      fonctionne ce prédicat.
 ******************************************************************************/
-
-
+   
      /*
           findall(Num, member(Num, [1, 5, 10, 16]), List).
      */
-
-
 
 /*****************************************************************************
 * 2) Pour connaître les tous les succeseurs d'un état E il suffira alors 
@@ -50,16 +43,11 @@
 
 /*
      findall(etat(4,10), operador('P -> G', etat(5,9), etat(4,10)), [etat(4,10)]).
-     
      findall(  et(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, CV_gauche), 
                operador('gauche', etat(5,9), et(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, CV_gauche)), 
                [et(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, CV),
                et(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, CV_gauche)]).
 */
-
-
-
-
 
 /*****************************************************************************
 * 3) Le codage de l'algorithme de recherche en profondeur nécessite alors
@@ -77,12 +65,6 @@
 * veiller à développer à chaque étape, le noeud le plus ancien parmi ceux de la frontière
 * (attention à la façon dont vous rajoutez des noeuds à la frontière).
 ******************************************************************************/
- 
- 
- 
- 
- 
- 
 /*****************************************************************************
 * Definir le prédicat :
 * rech_larg(+E,-Sol,-NNA,-NND) 
@@ -96,6 +78,47 @@
 *		- developpés et effectue la recherche
 *		- une procédure auxiliaire qui reconstruit le chemin solution lorsqu'un état but a été atteint.
 ******************************************************************************/
+
+rech_larg(E, Sol, NNA, NND) :-
+    init(E, InitNode),
+    rech_larg_aux([InitNode], [], Sol, NNA, NND).
+
+rech_larg_aux([nd(E, Pere) | _], _, Sol, NNA, NND) :-
+    goal(E),
+    !,
+    construire_solution(nd(E, Pere), [], Sol),
+    NNA is 1,
+    NND is 1.
+
+rech_larg_aux([nd(E, Pere) | Frontiere], DejaVisites, Sol, NNA, NND) :-
+    findall(NE, operateur(OP, E, NE), Successeurs),
+    ajouter_successeurs(Successeurs, Pere, Frontiere, NouvelleFrontiere),
+    append(DejaVisites, [E], NouveauxDejaVisites),
+    rech_larg_aux(Frontiere, NouveauxDejaVisites, Sol, NNA1, NND1),
+    NNA is NNA1 + 1,
+    NND is NND1 + 1.
+
+ajouter_successeurs([], _, Frontiere, Frontiere).
+ajouter_successeurs([NE | Successeurs], Pere, Frontiere, NouvelleFrontiere) :-
+    \+ deja_visite(NE, Pere, Frontiere),
+    !,
+    append(Frontiere, [nd(NE, Pere)], FrontiereTemp),
+    ajouter_successeurs(Successeurs, Pere, FrontiereTemp, NouvelleFrontiere).
+ajouter_successeurs([_ | Successeurs], Pere, Frontiere, NouvelleFrontiere) :-
+    ajouter_successeurs(Successeurs, Pere, Frontiere, NouvelleFrontiere).
+
+deja_visite(_, _, []).
+deja_visite(E, Pere, [nd(E, _) | _]) :-
+    meme_etat(E, Pere).
+deja_visite(E, Pere, [_ | AutresNoeuds]) :-
+    deja_visite(E, Pere, AutresNoeuds).
+
+meme_etat(etat(A, B), etat(A, B)).
+
+construire_solution(nil, Acc, Acc).
+construire_solution(nd(E, Pere), Acc, Sol) :-
+    construire_solution(Pere, [E | Acc], Sol).
+
 
 
 
